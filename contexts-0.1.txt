@@ -227,7 +227,7 @@ Notes
     See Section 8.7.2 for notes on the /shmem_quiet/ routine.
 
 ------------------------------
-XX.XX.5 Loud Barrier
+XX.XX.5 Process Synchronization
 ------------------------------
 
 Registers the arrival of a PE at a barrier and suspends PE execution until all
@@ -235,16 +235,16 @@ other PEs arrive at the barrier.  These operations are similar to
 /shmem_barrier/ and /shmem_barrier_all/, with the distinction that they do not
 wait for local and remote memory updates to complete.  Waiting for memory
 updates to complete can be achieved by calling the /shmem_ctx_quiet/ operation
-prior to calling the loud barrier routine.  The /shmem_barrier/ and
+prior to calling the /shmem_sync/ routine.  The /shmem_barrier/ and
 /shmem_barrier_all/ routines are equivalent to performing a /shmem_ctx_quiet/
-operation on SHMEM_CTX_DEFAULT followed by the corresponding loud barrier
+operation on SHMEM_CTX_DEFAULT followed by the corresponding /shmem_sync/
 operation.
 
 SYNOPSIS
 
     C/C++:
-    void shmem_loud_barrier(int PE_start, int logPE_stride, int PE_size, long *pSync);
-    void shmem_loud_barrier_all(void); 
+    void shmem_sync(int PE_start, int logPE_stride, int PE_size, long *pSync);
+    void shmem_sync_all(void); 
 
 
     Fortran:
