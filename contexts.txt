@@ -1,9 +1,8 @@
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
-                 OpenSHMEM Contexts Specification v0.1
+                 OpenSHMEM Contexts Specification v0.0.2
   
                                James Dinan
                                Intel Corp.
-                                May, 2015
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
 
 Notes to the reader:
@@ -14,51 +13,63 @@ specification.
 The specified API is intended to complement the existing thread safety API
 provided by Cray SHMEM, which adds a /shmem_init_thread/ routine and thread
 safety levels SHMEM_THREAD_SINGLE, SHMEM_THREAD_SERIALIZED, and
-SHMEM_THREAD_MULTIPLE.  In addition, we also assume the nonblocking
-communication API provided by Cray SHMEM.
+SHMEM_THREAD_MULTIPLE.  In addition, the nonblocking communication API provided
+by Cray SHMEM is also assumed.
 
 ------------------------------
 XX.XX COMMUNICATION CONTEXTS
 ------------------------------
 
 Communication contexts can be used to perform sets of independent communcation
-operations, where each set is synchronized separately.  This functionality may
-be useful for overlapping sets of communication operations.  It can also be
-used to isolate communication operations performed by threads, eliminating
-interference between threads when multithreaded processes are used.  Further,
-when parallel communication resources are available, implementations may
-utilize contexts to map operations performed by separate threads to separate
-resource sets.
+operations, where each set can be synchronized in isolation from other sets.
+This functionality may be useful for overlapping sets of communication
+operations.  It can also be used to isolate communication operations performed
+by threads, eliminating interference between threads when multithreaded
+processes are used.  Further, when parallel communication resources are
+available, implementations may utilize contexts to map operations performed by
+separate threads to separate resource sets.  This mapping is facilitated
+through the use of communication resouce domains.
 
 ------------------------------
 XX.XX.1 Constants and Types
 ------------------------------
 
-We introduce the following new constants:
+The following new constants are introduced:
 
-    SHMEM_CTX_DEFAULT - The default context.  All point-to-point communication
-    operations and synchronizations that do not specify a context are performed
-    on the default context.  The thread safety model of the default context is
-    identical to the thread safety model with which the OpenSHMEM library was
-    initialized.
+    SHMEM_CTX_DEFAULT - The default context, created on SHMEM_DOMAIN_DEFAULT.
+    All point-to-point communication operations and synchronizations that do
+    not specify a context are performed on the default context.  The thread
+    safety model of the default context is identical to the thread safety model
+    with which the OpenSHMEM library was initialized.
 
-    SHMEM_CTX_NULL - An invalid context handle value.
+    SHMEM_DOMAIN_DEFAULT - The default resource domain.  This resource domain
+    utilizes a thread safety model that is identical to the thread safety model
+    with which the OpenSHMEM library was initialized.
 
-We introduce the following new handle types:
+The following new handle types are introduced and are valid for language-level
+assignment and comparison:
 
-    shmem_ctx_t - An opaque handle to a SHMEM context.  It is valid to use this
-    handle value in language-level assignment and comparison operations.
+    shmem_ctx_t - An opaque handle to a SHMEM context.
+
+    shmem_domain_t - An opaque handle to a SHMEM resource domain.
 
 ------------------------------
-XX.XX.2 Context Creation
+XX.XX.2 Resource Domain Creation
 ------------------------------
 
-The following function is used to create communication contexts.
+The following function can be used to create resource domains.  Resource
+domains correspond to sets of resources that are used for transmitting messages
+and are utilized in the creation of communication contexts.  Resource domains
+can be used to create sets of communication resources for each thread in an
+OpenSHMEM program, which can then be used in the creation of communication
+contexts that will be used by given thread.  The resource domain can be
+annotated with a restricted synchronization model, allowing an OpenSHMEM
+library to reduce or eliminate internal synchronizations.
 
 SYNOPSIS
 
     C/C++:
-    int shmem_ctx_create(int num_ctx, int thread_level, shmem_ctx_t ctx[]);
+    void shmem_domain_create(int thread_level, shmem_domain_t *domain);
 
     Fortran:
     WIP
@@ -66,67 +77,20 @@ SYNOPSIS
 DESCRIPTION
 
 Arguments
-    IN  num_ctx      Number of contexts that will be created
-    IN  thread_level Thread safety model for new contexts
-    OUT ctx          Array of length /num_ctx/ context handles
+    IN  thread_level Thread safety model for the domain
+    OUT domain       Handle to newly created domain
 
 API Description
 
-    /shmem_ctx_create/ creates up to contexts /num_ctx/ contexts and returns
-    handles to the created contexts in the /ctx/ array.  Entries in the /ctx/
-    array at indices up to the number of contexts created are set to valid
-    context handles.  The remaining entries are set to SHMEM_CTX_NULL.
-
-    The /thread_level/ argument can be used to restrict the thread safety model
-    that will be used when performing operations using the given context.  This
-    argument must be the same as or more restrictive than the threading model
-    with which the OpenSHMEM library was initialized.  For example, in a
-    multithreaded SHMEM process, a single thread may use a given context.  In
-    this case, the SHMEM library does not need to synchronize accesses to
-    context-specific state and the given context can be used in a
-    SHMEM_THREAD_SERIALIZED model.
-
-Return Values
-
-    Integer - number of contexts that were created.  May be less than the
-    number requested if adequate resources are not available.
-
-Notes
-
-    None.
-
-Notes to OpenSHMEM Committee
-
-    Instead of thread_level, we may want a more general ``assertions'' field
-    that can convey additional information about usage model.  Since I don't
-    know of such a use case right now, I chose the simpler thread_level
-    argument.
-
-------------------------------
-XX.XX.3 Context Destruction
-------------------------------
-
-The following function is used to free communication contexts.
-
-SYNOPSIS
-
-    C/C++:
-    void shmem_ctx_destroy(int num_ctx, shmem_ctx_t ctx[]);
-
-    Fortran:
-    WIP
-
-DESCRIPTION
-
-Arguments
-    IN    num_ctx Number of contexts that will be freed
-    INOUT ctx     Array of length /num_ctx/ context handles
-
-API Description
-
-    /shmem_ctx_destroy/ destroys contexts that were created by a call to
-    /shmem_ctx_create/.  The destroyed entries in /ctx/ are reset to
-    SHMEM_CTX_NULL.
+    Create a new communication resource domain with the given thread safety
+    model.  The /thread_level/ argument restricts the thread safety model that
+    will be used when performing operations on all contexts associated with the
+    given resource domain.  This argument must be the same as or more
+    restrictive than the threading model with which the OpenSHMEM library was
+    initialized.  For example, if a /thread_level/ argument of
+    SHMEM_THREAD_SERIALIZED is provided, it is erroneous for the user to
+    simultaneously perform more than one operation on any context created on
+    the given domain.
 
 Return Values
 
@@ -137,7 +101,107 @@ Notes
     None.
 
 ------------------------------
-XX.XX.5 Context Fence
+XX.XX.3 Resource Domain Destruction
+------------------------------
+
+The following function can be used to destroy resource domains.
+
+SYNOPSIS
+
+    C/C++:
+    void shmem_domain_destroy(shmem_domain_t domain);
+
+    Fortran:
+    WIP
+
+DESCRIPTION
+
+Arguments
+    IN  domain       Handle to newly created domain
+
+API Description
+
+    Destroy the given resource domain.  This function can be called at any
+    time; however, internal resource may not be released until all contexts
+    using the given resource domain are destroyed.
+
+Return Values
+
+    None.
+
+Notes
+
+    None.
+
+------------------------------
+XX.XX.4 Context Creation
+------------------------------
+
+The following function is used to create a communication context.
+
+SYNOPSIS
+
+    C/C++:
+    int shmem_ctx_create(shmem_domain_t domain, shmem_ctx_t *ctx);
+
+    Fortran:
+    WIP
+
+DESCRIPTION
+
+Arguments
+    IN  domain Handle to the domain on which the context will be created
+    OUT ctx    Handle to newly created context
+
+API Description
+
+    /shmem_ctx_create/ creates a new communication context on the given
+    resource domain and returns its handle through the /ctx/ argument.  If the
+    context was created successfully, a SHMEM_SUCCESS value is returned.
+
+Return Values
+
+    Integer - Indicates success or failure of the operation.
+
+Notes
+
+    None.
+
+------------------------------
+XX.XX.5 Context Destruction
+------------------------------
+
+The following function is used to free a communication context.
+
+SYNOPSIS
+
+    C/C++:
+    void shmem_ctx_destroy(shmem_ctx_t ctx);
+
+    Fortran:
+    WIP
+
+DESCRIPTION
+
+Arguments
+    IN ctx  Handle of the context to be freed
+
+API Description
+
+    /shmem_ctx_destroy/ destroys a context that was created by a call to
+    /shmem_ctx_create/.  This function performs an implicit quiet operation on
+    the given context before it is freed.
+
+Return Values
+
+    None.
+
+Notes
+
+    None.
+
+------------------------------
+XX.XX.6 Context Fence
 ------------------------------
 
 Assures ordering of delivery of Put, AMOs, and memory store routines to
@@ -188,7 +252,7 @@ Notes to OpenSHMEM Committee
     shared memory (e.g.  via shmem_ptr pointers).
 
 ------------------------------
-XX.XX.5 Context Quiet
+XX.XX.7 Context Quiet
 ------------------------------
 
 Waits for completion of all outstanding Put, AMOs and memory store routines to
@@ -227,7 +291,7 @@ Notes
     See Section 8.7.2 for notes on the /shmem_quiet/ routine.
 
 ------------------------------
-XX.XX.5 Process Synchronization
+XX.XX.8 Process Synchronization
 ------------------------------
 
 Registers the arrival of a PE at a barrier and suspends PE execution until all
@@ -267,7 +331,7 @@ Notes
     None.
 
 ------------------------------
-XX.XX.6 Context Communication
+XX.XX.9 Context Communication
 ------------------------------
 
 The following additional routines are defined for performing communication on a
@@ -319,6 +383,7 @@ Notes to OpenSHMEM committee
 
     For all of the functions listed, there will also be nonblocking versions
     that accept a context argument.
+
 
 ------------------------------
 ADDITIONAL NOTES
