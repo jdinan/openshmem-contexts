@@ -1,5 +1,5 @@
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
-                 OpenSHMEM Contexts Specification v0.0.2
+                 OpenSHMEM Contexts Specification v0.0.3
   
                                James Dinan
                                Intel Corp.
@@ -69,7 +69,8 @@ library to reduce or eliminate internal synchronizations.
 SYNOPSIS
 
     C/C++:
-    void shmem_domain_create(int thread_level, shmem_domain_t *domain);
+    void shmem_domains_create(int thread_level, int num_domains,
+                              shmem_domain_t domains[]);
 
     Fortran:
     WIP
@@ -78,19 +79,23 @@ DESCRIPTION
 
 Arguments
     IN  thread_level Thread safety model for the domain
-    OUT domain       Handle to newly created domain
+    IN  num_domains  Number of domains to create
+    OUT domains      Array of /num_domains/ handles to newly created domains
 
 API Description
 
-    Create a new communication resource domain with the given thread safety
-    model.  The /thread_level/ argument restricts the thread safety model that
-    will be used when performing operations on all contexts associated with the
-    given resource domain.  This argument must be the same as or more
-    restrictive than the threading model with which the OpenSHMEM library was
-    initialized.  For example, if a /thread_level/ argument of
-    SHMEM_THREAD_SERIALIZED is provided, it is erroneous for the user to
-    simultaneously perform more than one operation on any context created on
-    the given domain.
+    Create a new set of communication resource domains with the given thread
+    safety model.  The /thread_level/ argument restricts the thread safety
+    model that will be used when performing operations on all contexts
+    associated with the newly created resource domains.  This argument must be
+    the same as or more restrictive than the threading model with which the
+    OpenSHMEM library was initialized.  For example, if a /thread_level/
+    argument of SHMEM_THREAD_SERIALIZED is provided when a given domain was
+    created, it is erroneous for the user to simultaneously perform more than
+    one operation on any context created on the given domain.
+
+    Advice to users: Implementations may provide the best resource utilization
+    if all domains are created in a single call to /shmem_domains_create/.
 
 Return Values
 
@@ -109,7 +114,7 @@ The following function can be used to destroy resource domains.
 SYNOPSIS
 
     C/C++:
-    void shmem_domain_destroy(shmem_domain_t domain);
+    void shmem_domains_destroy(int num_domains, shmem_domain_t domains[]);
 
     Fortran:
     WIP
@@ -117,12 +122,13 @@ SYNOPSIS
 DESCRIPTION
 
 Arguments
-    IN  domain       Handle to newly created domain
+    IN  num_domains  Number of domains to be destroyed
+    IN  domains      Pointer to array of /num_domains/ domains to be destroyed
 
 API Description
 
-    Destroy the given resource domain.  This function can be called at any
-    time; however, internal resource may not be released until all contexts
+    Destroy the given set of resource domains.  This function can be called at
+    any time; however, internal resource may not be released until all contexts
     using the given resource domain are destroyed.
 
 Return Values
