@@ -1,5 +1,5 @@
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
-                 OpenSHMEM Contexts Specification v0.0.3
+                 OpenSHMEM Contexts Specification v0.0.4
   
                                James Dinan
                                Intel Corp.
@@ -348,24 +348,24 @@ versions with the context argument of SHMEM_CTX_DEFAULT.
 SYNOPSIS
 
     C/C++:
-    void shmem_ctx_TYPE_put(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-    void shmem_ctx_put[,64,128,mem](void *dest, const void *source, size_t nelems, int pe);
-    void shmem_ctx_TYPE_p(TYPE *addr, TYPE value, int pe);
-    void shmem_ctx_TYPE_iput(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe);
-    void shmem_ctx_iput[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe);
+    void shmem_ctx_TYPE_put(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_put[,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_p(TYPE *addr, TYPE value, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_iput(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_iput[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
-    void shmem_ctx_TYPE_get(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-    void shmem_ctx_get[,64,128,mem](void *dest, const void *source, size_t nelems, int pe);
-    TYPE shmem_ctx_TYPE_g(TYPE *addr, int pe);
-    void shmem_ctx_TYPE_iget(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe);
-    void shmem_ctx_iget[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe);
+    void shmem_ctx_TYPE_get(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_get[,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    TYPE shmem_ctx_TYPE_g(TYPE *addr, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_iget(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_iget[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
-    void shmem_TYPE_add(TYPE *dest, TYPE value, int pe);
-    TYPE shmem_TYPE_cswap(TYPE *dest, TYPE cond, TYPE value, int pe);
-    TYPE shmem_TYPE_swap(TYPE *dest, TYPE value, int pe);
-    TYPE shmem_TYPE_finc(TYPE *dest, int pe);
-    void shmem_TYPE_inc(TYPE *dest, int pe);
-    TYPE shmem_TYPE_fadd(TYPE *dest, TYPE value, int pe);
+    void shmem_TYPE_add(TYPE *dest, TYPE value, int pe, shmem_ctx_t ctx);
+    TYPE shmem_TYPE_cswap(TYPE *dest, TYPE cond, TYPE value, int pe, shmem_ctx_t ctx);
+    TYPE shmem_TYPE_swap(TYPE *dest, TYPE value, int pe, shmem_ctx_t ctx);
+    TYPE shmem_TYPE_finc(TYPE *dest, int pe, shmem_ctx_t ctx);
+    void shmem_TYPE_inc(TYPE *dest, int pe, shmem_ctx_t ctx);
+    TYPE shmem_TYPE_fadd(TYPE *dest, TYPE value, int pe, shmem_ctx_t ctx);
 
     Fortran:
     WIP
