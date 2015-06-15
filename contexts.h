@@ -25,20 +25,27 @@ void shmem_sync_all(void);
     void shmem_ctx_iput##STYPE(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);       \
     void shmem_ctx_get##STYPE(void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);                                      \
     void shmem_ctx_iget##STYPE(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);       \
-    void shmem_ctx_iget##STYPE(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_iget##STYPE(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);       \
+    void shmem_ctx_put##STYPE##_nb(void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);                                 \
+    void shmem_ctx_iput##STYPE##_nb(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);  \
+    void shmem_ctx_get##STYPE##_nb(void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);                                 \
+    void shmem_ctx_iget##STYPE##_nb(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);  \
+    void shmem_ctx_iget##STYPE##_nb(void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
 #define SHMEM_PG_OPS_DECLARE(STYPE, CTYPE) \
-    void shmem_##STYPE##_p(CTYPE *addr, CTYPE value, int pe);                                                                               \
-    CTYPE shmem_##STYPE##_g(CTYPE *addr, int pe);
+    void shmem_ctx_##STYPE##_p(CTYPE *addr, CTYPE value, int pe, shmem_ctx_t ctx);                                                          \
+    CTYPE shmem_ctx_##STYPE##_g(CTYPE *addr, int pe, shmem_ctx_t ctx);
 
 #define SHMEM_PUTGET_OPS_DECLARE(STYPE, CTYPE) \
     void shmem_ctx_##STYPE##_put(CTYPE *dest, const CTYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);                                 \
-    void shmem_ctx_##STYPE##_p(CTYPE *addr, CTYPE value, int pe, shmem_ctx_t ctx);                                                          \
     void shmem_ctx_##STYPE##_iput(CTYPE *dest, const CTYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);  \
+    void shmem_ctx_##STYPE##_put_nb(CTYPE *dest, const CTYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);                              \
+    void shmem_ctx_##STYPE##_iput_nb(CTYPE *dest, const CTYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx); \
                                                                                                                                             \
     void shmem_ctx_##STYPE##_get(CTYPE *dest, const CTYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);                                 \
-    CTYPE shmem_ctx_##STYPE##_g(CTYPE *addr, int pe, shmem_ctx_t ctx);                                                                      \
-    void shmem_ctx_##STYPE##_iget(CTYPE *dest, const CTYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_##STYPE##_iget(CTYPE *dest, const CTYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);  \
+    void shmem_ctx_##STYPE##_get_nb(CTYPE *dest, const CTYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);                              \
+    void shmem_ctx_##STYPE##_iget_nb(CTYPE *dest, const CTYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
 #define SHMEM_ATOMIC_OPS_DECLARE(STYPE, CTYPE) \
     void shmem_##STYPE##_add(CTYPE *dest, CTYPE value, int pe, shmem_ctx_t ctx);                                                            \
