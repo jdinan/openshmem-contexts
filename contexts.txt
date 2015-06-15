@@ -349,13 +349,13 @@ SYNOPSIS
 
     C/C++:
     void shmem_ctx_TYPE_put(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_put[,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_put[32,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
     void shmem_ctx_TYPE_p(TYPE *addr, TYPE value, int pe, shmem_ctx_t ctx);
     void shmem_ctx_TYPE_iput(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
     void shmem_ctx_iput[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
     void shmem_ctx_TYPE_get(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_get[,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_get[32,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
     TYPE shmem_ctx_TYPE_g(TYPE *addr, int pe, shmem_ctx_t ctx);
     void shmem_ctx_TYPE_iget(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
     void shmem_ctx_iget[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
