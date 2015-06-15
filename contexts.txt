@@ -1,5 +1,5 @@
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
-                 OpenSHMEM Contexts Specification v0.0.4
+                 OpenSHMEM Contexts Specification v0.0.5
   
                                James Dinan
                                Intel Corp.
@@ -10,11 +10,20 @@ Notes to the reader:
 This specification is formatted according to the guidelines of the OpenSHMEM
 specification.
 
-The specified API is intended to complement the existing thread safety API
-provided by Cray SHMEM, which adds a /shmem_init_thread/ routine and thread
-safety levels SHMEM_THREAD_SINGLE, SHMEM_THREAD_SERIALIZED, and
-SHMEM_THREAD_MULTIPLE.  In addition, the nonblocking communication API provided
-by Cray SHMEM is also assumed.
+The specified API is intended to complement the thread safety and nonblocking
+communication APIs provided by Cray SHMEM.  Specifically, we assume the
+/shmem_init_thread/ routine and thread safety levels SHMEM_THREAD_SINGLE,
+SHMEM_THREAD_SERIALIZED, and SHMEM_THREAD_MULTIPLE.  However, we omit the
+shmem_thread_* functions and associated API.
+
+For more details, see:
+
+"Thread-Safe SHMEM Extensions," Monika ten Bruggencate, Duncan Roweth, and
+Steve Oyanagi.  OpenSHMEM and Related Tech; Experiences, Implementations, and
+Tools.  Lecture Notes in Computer Science Volume 8356, 2014, pp 178-185.
+Online: http://rd.springer.com/chapter/10.1007%2F978-3-319-05215-1_13
+
+Cray MPT 7.2 Man Pages.  Online: http://goo.gl/nueeE6
 
 ------------------------------
 XX.XX COMMUNICATION CONTEXTS
@@ -28,7 +37,8 @@ by threads, eliminating interference between threads when multithreaded
 processes are used.  Further, when parallel communication resources are
 available, implementations may utilize contexts to map operations performed by
 separate threads to separate resource sets.  This mapping is facilitated
-through the use of communication resouce domains.
+through the use of communication resouce domains, which can be used to
+represent the resource set belonging to a thread.
 
 ------------------------------
 XX.XX.1 Constants and Types
@@ -36,15 +46,13 @@ XX.XX.1 Constants and Types
 
 The following new constants are introduced:
 
-    SHMEM_CTX_DEFAULT - The default context, created on SHMEM_DOMAIN_DEFAULT.
-    All point-to-point communication operations and synchronizations that do
-    not specify a context are performed on the default context.  The thread
-    safety model of the default context is identical to the thread safety model
-    with which the OpenSHMEM library was initialized.
-
     SHMEM_DOMAIN_DEFAULT - The default resource domain.  This resource domain
     utilizes a thread safety model that is identical to the thread safety model
     with which the OpenSHMEM library was initialized.
+
+    SHMEM_CTX_DEFAULT - The default context, created on SHMEM_DOMAIN_DEFAULT.
+    All point-to-point communication operations and synchronizations that do
+    not specify a context are performed on the default context.
 
 The following new handle types are introduced and are valid for language-level
 assignment and comparison:
@@ -60,11 +68,11 @@ XX.XX.2 Resource Domain Creation
 The following function can be used to create resource domains.  Resource
 domains correspond to sets of resources that are used for transmitting messages
 and are utilized in the creation of communication contexts.  Resource domains
-can be used to create sets of communication resources for each thread in an
-OpenSHMEM program, which can then be used in the creation of communication
-contexts that will be used by given thread.  The resource domain can be
-annotated with a restricted synchronization model, allowing an OpenSHMEM
-library to reduce or eliminate internal synchronizations.
+can be used to identify sets of communication resources for each thread in an
+OpenSHMEM program.  A thread's domain can then be used in the creation of
+communication contexts that will be used by given thread.  The resource domain
+can further be created with a restricted synchronization model, allowing an
+OpenSHMEM library to reduce or eliminate internal synchronizations.
 
 SYNOPSIS
 
@@ -89,10 +97,13 @@ API Description
     model that will be used when performing operations on all contexts
     associated with the newly created resource domains.  This argument must be
     the same as or more restrictive than the threading model with which the
-    OpenSHMEM library was initialized.  For example, if a /thread_level/
-    argument of SHMEM_THREAD_SERIALIZED is provided when a given domain was
-    created, it is erroneous for the user to simultaneously perform more than
-    one operation on any context created on the given domain.
+    OpenSHMEM library was initialized.  For example, when the OpenSHMEM library
+    is initialized in the SHMEM_THREAD_MULTIPLE model, a /thread_level/
+    argument of SHMEM_THREAD_SERIALIZED can be provided during domain creation.
+    Accesses to all contexts each of the resulting domains must be serialized
+    by the user.  In other words, it is erroneous for the user to
+    simultaneously perform multiple operations on any context created on a
+    given domain.
 
     Advice to users: Implementations may provide the best resource utilization
     if all domains are created in a single call to /shmem_domains_create/.
@@ -249,14 +260,6 @@ Notes
     guarantees and does not guarantee completion of delivery.  See Section
     8.7.1 for additional notes on the /shmem_fence/ routine.
 
-Notes to OpenSHMEM Committee
-
-    Do we want to exclude memory store operations in fence/quiet routines?  If
-    we had this semantic, we might need to add a separate routine that
-    synchronized just memory store operations, which might not be a bad thing
-    since fence/quiet is a heavy hammer for ordering accesses to interprocess
-    shared memory (e.g.  via shmem_ptr pointers).
-
 ------------------------------
 XX.XX.7 Context Quiet
 ------------------------------
@@ -348,17 +351,17 @@ versions with the context argument of SHMEM_CTX_DEFAULT.
 SYNOPSIS
 
     C/C++:
-    void shmem_ctx_TYPE_put(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_put[32,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
     void shmem_ctx_TYPE_p(TYPE *addr, TYPE value, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_TYPE_iput(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_iput[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_put[_nb](TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_put[32,64,128,mem][_nb](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_iput[_nb](TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_iput[32,64,128][_nb](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
-    void shmem_ctx_TYPE_get(TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_get[32,64,128,mem](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
     TYPE shmem_ctx_TYPE_g(TYPE *addr, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_TYPE_iget(TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
-    void shmem_ctx_iget[32,64,128](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_get[_nb](TYPE *dest, const TYPE *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_get[32,64,128,mem][_nb](void *dest, const void *source, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_TYPE_iget[_nb](TYPE *dest, const TYPE *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
+    void shmem_ctx_iget[32,64,128][_nb](void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems, int pe, shmem_ctx_t ctx);
 
     void shmem_TYPE_add(TYPE *dest, TYPE value, int pe, shmem_ctx_t ctx);
     TYPE shmem_TYPE_cswap(TYPE *dest, TYPE cond, TYPE value, int pe, shmem_ctx_t ctx);
@@ -381,21 +384,17 @@ DESCRIPTION
     
     See non-context versions of these routines for this information.
 
-Notes to OpenSHMEM committee
-
-    In terms of organization of the document, we could add the context version
-    of each communication operation alongside the non-context version, since
-    they have the same behavior.
-
-    For all of the functions listed, there will also be nonblocking versions
-    that accept a context argument.
-
-
 ------------------------------
-ADDITIONAL NOTES
+ADDITIONAL NOTES AND WIP
 ------------------------------
 
-shmem_barrier and shmem_barrier_all are defined to quiet only the default context
-  - This is important because we want to avoid multiple threads using the same
-    context concurrently and a barrier that touches all contexts could make
-    it hard for us to eliminate the need for synchronization on per-context state.
+shmem_barrier and shmem_barrier_all are defined to quiet only the default
+context.  This is important because we want to avoid multiple threads using the
+same context concurrently and a barrier that touches all contexts could make it
+hard for us to eliminate the need for synchronization on per-context state.
+
+Do we want to exclude memory store operations in fence/quiet routines?  If we
+had this semantic, we might need to add a separate routine that synchronizes
+just memory store operations, which might not be a bad thing since fence/quiet
+is a heavy hammer for ordering accesses to interprocess shared memory (e.g.
+via shmem_ptr pointers).
