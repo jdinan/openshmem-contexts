@@ -7,8 +7,8 @@
 
 Notes to the reader:
 
-This specification is formatted according to the guidelines of the OpenSHMEM
-specification.
+This draft specification is formatted according to the guidelines of the
+OpenSHMEM specification.
 
 The specified API is intended to complement the thread safety and nonblocking
 communication APIs provided by Cray SHMEM.  Specifically, we assume the
@@ -99,8 +99,8 @@ API Description
     OpenSHMEM library was initialized.  For example, when the OpenSHMEM library
     is initialized in the SHMEM_THREAD_MULTIPLE model, a /thread_level/
     argument of SHMEM_THREAD_SERIALIZED can be provided during domain creation.
-    Accesses to all contexts each of the resulting domains must be serialized
-    by the user.  In other words, it is erroneous for the user to
+    Accesses to all contexts on each of the resulting domains must be serialized
+    by the user, per domain.  In other words, it is erroneous for the user to
     simultaneously perform multiple operations on any context created on a
     given domain.
 
@@ -114,6 +114,11 @@ Return Values
 Notes
 
     None.
+
+Notes to OpenSHMEM committee
+
+    Reusing SHMEM_THREAD_* here could be a bit of a force fit.  We may want to
+    consider add new constants to identify thread usage models for domains.
 
 ------------------------------
 XX.XX.3 Resource Domain Destruction
@@ -149,7 +154,7 @@ Notes
 
     None.
 
-Note to OpenSHMEM committee
+Notes to OpenSHMEM committee
 
     Discuss whether we are comfortable with potentially reference counting an
     internal domain object and freeing it once the last reference is released.

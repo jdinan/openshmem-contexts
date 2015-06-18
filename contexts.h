@@ -9,9 +9,9 @@
 typedef int shmem_ctx_t;
 typedef int shmem_domain_t;
 
-void shmem_domains_create(int thread_level, int num_domains, shmem_domain_t domains[]);
+void shmem_domain_create(int thread_level, int num_domains, shmem_domain_t domains[]);
 
-void shmem_domains_destroy(int num_domains, shmem_domain_t domains[]);
+void shmem_domain_destroy(int num_domains, shmem_domain_t domains[]);
 int shmem_ctx_create(shmem_domain_t domain, shmem_ctx_t *ctx);
 void shmem_ctx_destroy(shmem_ctx_t ctx);
 void shmem_ctx_fence(shmem_ctx_t ctx);
