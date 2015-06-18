@@ -1,5 +1,5 @@
 +-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+-=-+
-                 OpenSHMEM Contexts Specification v0.0.5
+                 OpenSHMEM Contexts Specification v0.0.6
   
                                James Dinan
                                Intel Corp.
@@ -34,9 +34,9 @@ operations, where each set can be synchronized in isolation from other sets.
 This functionality may be useful for overlapping sets of communication
 operations.  It can also be used to isolate communication operations performed
 by threads, eliminating interference between threads when multithreaded
-processes are used.  Further, when parallel communication resources are
-available, implementations may utilize contexts to map operations performed by
-separate threads to separate resource sets.  This mapping is facilitated
+processes are used.  Further, when independent parallel communication resources
+are available, implementations may utilize contexts to map operations performed
+by separate threads to separate resource sets.  This mapping is facilitated
 through the use of communication resouce domains, which can be used to
 represent the resource set belonging to a thread.
 
@@ -68,16 +68,15 @@ XX.XX.2 Resource Domain Creation
 The following function can be used to create resource domains.  Resource
 domains correspond to sets of resources that are used for transmitting messages
 and are utilized in the creation of communication contexts.  Resource domains
-can be used to identify sets of communication resources for each thread in an
-OpenSHMEM program.  A thread's domain can then be used in the creation of
-communication contexts that will be used by given thread.  The resource domain
-can further be created with a restricted synchronization model, allowing an
-OpenSHMEM library to reduce or eliminate internal synchronizations.
+can be used in the creation of communication contexts that will be used by a
+given thread.  The resource domain can further be created with a restricted
+synchronization model, allowing an OpenSHMEM library to reduce or eliminate
+internal synchronizations.
 
 SYNOPSIS
 
     C/C++:
-    void shmem_domains_create(int thread_level, int num_domains,
+    void shmem_domain_create(int thread_level, int num_domains,
                               shmem_domain_t domains[]);
 
     Fortran:
@@ -106,7 +105,7 @@ API Description
     given domain.
 
     Advice to users: Implementations may provide the best resource utilization
-    if all domains are created in a single call to /shmem_domains_create/.
+    if all domains are created in a single call to /shmem_domain_create/.
 
 Return Values
 
@@ -125,7 +124,7 @@ The following function can be used to destroy resource domains.
 SYNOPSIS
 
     C/C++:
-    void shmem_domains_destroy(int num_domains, shmem_domain_t domains[]);
+    void shmem_domain_destroy(int num_domains, shmem_domain_t domains[]);
 
     Fortran:
     WIP
@@ -149,6 +148,13 @@ Return Values
 Notes
 
     None.
+
+Note to OpenSHMEM committee
+
+    Discuss whether we are comfortable with potentially reference counting an
+    internal domain object and freeing it once the last reference is released.
+    Otherwise, we would have to require the user not to free the domain as long
+    as there are contexts using it.
 
 ------------------------------
 XX.XX.4 Context Creation
@@ -208,6 +214,12 @@ API Description
     /shmem_ctx_destroy/ destroys a context that was created by a call to
     /shmem_ctx_create/.  This function performs an implicit quiet operation on
     the given context before it is freed.
+
+    Rationale: Destroying a context makes it impossible for the user to
+    complete communication operations that are pending on that context.  This
+    includes nonblocking communication operations, whose local buffers are only
+    returned to the user after the operations have been completed.  An implicit
+    quiet is performed when freeing a context to avoid this ambiguity.
 
 Return Values
 
